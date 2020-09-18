@@ -19,8 +19,55 @@
 
 ## Overview
 
-Describe the purpose of your project. Add additional sections as necessary to help collaborators and potential collaborators understand and use your project.
-  
+This repository analyzes viral genomes using [Nextstrain](https://nextstrain.org) to understand how SARS-CoV-2, the virus that is responsible for the COVID-19 pandemic, evolves and spreads.
+This is a copy of [the original Nextstrain ncov repository](https://github.com/nextstrain/ncov/).
+
+## Usage
+
+Clone this repository.
+
+```bash
+git clone https://github.com/CDCgov/spheres-augur-build.git
+cd spheres-augur-build/
+```
+
+Modify build definitions, as needed, in `spheres_profile/builds.yaml`.
+For more details about modifying builds, [see the SPHERES profile README](spheres_profile/README.md).
+Run the workflow.
+
+```bash
+snakemake --profile spheres_profile/
+```
+
+View the resulting builds with auspice from a local machine.
+
+```bash
+auspice view
+```
+
+## Workflow Maintenance
+
+The Nextstrain team constantly updates the ncov workflow by curating the input data and improving the workflow itself.
+To benefit from these upstream changes, this repository can track the original Nextstrain ncov repository as an upstream remote.
+
+```bash
+git remote add upstream https://github.com/nextstrain/ncov.git
+```
+
+Download the latest from the Nextstrain ncov repository.
+
+```bash
+git fetch upstream
+```
+
+Merge these changes into the local repository, adding an explicit merge commit.
+
+```bash
+git merge --no-ff upstream/master
+```
+
+Resolve any conflicts that occur and re-run the workflow, to benefit from the latest changes in the upstream.
+
 ## Public Domain Standard Notice
 This repository constitutes a work of the United States Government and is not
 subject to domestic copyright protection under 17 USC § 105. This repository is in
