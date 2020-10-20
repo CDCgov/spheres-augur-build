@@ -1,7 +1,7 @@
 {
-  "build_url": "https://github.com/myusername/myrepository/",
+  "build_url": "https://github.com/CDCgov/spheres-augur-build/",
   "maintainers": [
-    {"name": "My name", "url": "www.myurl.com"}
+    {"name": "CDC/AMD", "url": "https://www.cdc.gov/amd/"}
   ],
   "colorings": [
     {
@@ -69,7 +69,7 @@
     },
     {
       "key": "country_exposure",
-      "title": "Country of exre",
+      "title": "Country of exposure",
       "type": "categorical"
     },
     {
