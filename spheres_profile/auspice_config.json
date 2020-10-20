@@ -69,7 +69,7 @@
     },
     {
       "key": "country_exposure",
-      "title": "Country of exposure",
+      "title": "Country of exre",
       "type": "categorical"
     },
     {
@@ -80,6 +80,16 @@
     {
       "key": "region_exposure",
       "title": "Region of exposure",
+      "type": "categorical"
+    },
+    {
+      "key": "pangolin_lineage",
+      "title": "Pangolin lineage",
+      "type": "categorical"
+    },
+    {
+      "key": "GISAID_clade",
+      "title": "GISAID Clade",
       "type": "categorical"
     }
   ],
