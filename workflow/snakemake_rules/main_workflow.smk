@@ -1,50 +1,32 @@
-rule download:
-    message: "Downloading metadata and fasta files from S3"
+rule download_sequences:
+    message: "Downloading sequences from S3 bucket {params.s3_bucket}"
     output:
-        sequences = config["sequences"],
+        sequences = config["sequences"]
+    conda: config["conda_environment"]
+    params:
+        s3_bucket = config["S3_BUCKET"]
+    shell:
+        """
+        aws s3 cp s3://{params.s3_bucket}/sequences.fasta.gz - | gunzip -cq > {output.sequences:q}
+        """
+
+rule download_metadata:
+    message: "Downloading metadata from S3 bucket {params.s3_bucket}"
+    output:
         metadata = config["metadata"]
     conda: config["conda_environment"]
-    shell:
-        """
-        aws s3 cp s3://nextstrain-ncov-private/metadata.tsv.gz - | gunzip -cq >{output.metadata:q}
-        aws s3 cp s3://nextstrain-ncov-private/sequences.fasta.gz - | gunzip -cq > {output.sequences:q}
-        """
-
-from datetime import date
-from treetime.utils import numeric_date
-
-rule filter:
-    message:
-        """
-        Filtering to
-          - excluding strains in {input.exclude}
-        """
-    input:
-        sequences = rules.download.output.sequences,
-        metadata = rules.download.output.metadata,
-        include = config["files"]["include"],
-        exclude = config["files"]["exclude"]
-    output:
-        sequences = "results/filtered.fasta"
-    log:
-        "logs/filtered.txt"
     params:
-        min_length = config["filter"]["min_length"],
-        exclude_where = config["filter"]["exclude_where"],
-        date = numeric_date(date.today())
-    conda: config["conda_environment"]
+        s3_bucket = config["S3_BUCKET"]
     shell:
         """
-        augur filter \
-            --sequences {input.sequences} \
-            --metadata {input.metadata} \
-            --include {input.include} \
-            --max-date {params.date} \
-            --exclude {input.exclude} \
-            --exclude-where {params.exclude_where}\
-            --min-length {params.min_length} \
-            --output {output.sequences} 2>&1 | tee {log}
+        aws s3 cp s3://{params.s3_bucket}/metadata.tsv.gz - | gunzip -cq >{output.metadata:q}
         """
+
+rule download:
+    input:
+        config["metadata"],
+        config["sequences"]
+
 
 rule excluded_sequences:
     message:
@@ -52,8 +34,8 @@ rule excluded_sequences:
         Generating fasta file of excluded sequences
         """
     input:
-        sequences = rules.download.output.sequences,
-        metadata = rules.download.output.metadata,
+        sequences = config["sequences"],
+        metadata = config["metadata"],
         include = config["files"]["exclude"]
     output:
         sequences = "results/excluded.fasta"
@@ -99,7 +81,7 @@ rule diagnose_excluded:
     message: "Scanning excluded sequences {input.alignment} for problematic sequences"
     input:
         alignment = rules.align_excluded.output.alignment,
-        metadata = rules.download.output.metadata,
+        metadata = config["metadata"],
         reference = config["files"]["reference"]
     output:
         diagnostics = "results/excluded-sequence-diagnostics.tsv",
@@ -124,23 +106,28 @@ rule diagnose_excluded:
             --output-exclusion-list {output.to_exclude} 2>&1 | tee {log}
         """
 
-
-checkpoint partition_sequences:
+rule prefilter:
+    message:
+        """
+        Pre-filtering sequences for minimal length (before aligning)
+        """
     input:
-        sequences = rules.filter.output.sequences
+        sequences = config["sequences"],
+        metadata = config["metadata"],
     output:
-        split_sequences = directory("results/split_sequences/")
+        sequences = "results/prefiltered.fasta"
     log:
-        "logs/partition_sequences.txt"
+        "logs/prefiltered.txt"
     params:
-        sequences_per_group = config["partition_sequences"]["sequences_per_group"]
+        min_length = config["filter"]["min_length"],
     conda: config["conda_environment"]
     shell:
         """
-        python3 scripts/partition-sequences.py \
+        augur filter \
             --sequences {input.sequences} \
-            --sequences-per-group {params.sequences_per_group} \
-            --output-dir {output.split_sequences} 2>&1 | tee {log}
+            --metadata {input.metadata} \
+            --min-length {params.min_length} \
+            --output {output.sequences} 2>&1 | tee {log}
         """
 
 rule align:
@@ -148,53 +135,34 @@ rule align:
         """
         Aligning sequences to {input.reference}
           - gaps relative to reference are considered real
-        Cluster:  {wildcards.cluster}
         """
     input:
-        sequences = "results/split_sequences/{cluster}.fasta",
-        reference = config["files"]["reference"]
-    output:
-        alignment = "results/split_alignments/{cluster}.fasta"
-    log:
-        "logs/align_{cluster}.txt"
-    benchmark:
-        "benchmarks/align_{cluster}.txt"
-    threads: 2
-    conda: config["conda_environment"]
-    shell:
-        """
-        augur align \
-            --sequences {input.sequences} \
-            --reference-sequence {input.reference} \
-            --output {output.alignment} \
-            --nthreads {threads} \
-            --remove-reference 2>&1 | tee {log}
-        """
-
-def _get_alignments(wildcards):
-    checkpoint_output = checkpoints.partition_sequences.get(**wildcards).output[0]
-    return expand("results/split_alignments/{i}.fasta",
-                  i=glob_wildcards(os.path.join(checkpoint_output, "{i}.fasta")).i)
-
-rule aggregate_alignments:
-    message: "Collecting alignments"
-    input:
-        alignments = _get_alignments
+        sequences = "results/prefiltered.fasta",
+        reference = config["files"]["alignment_reference"]
     output:
         alignment = "results/aligned.fasta"
     log:
-        "logs/aggregate_alignments.txt"
+        "logs/align.txt"
+    benchmark:
+        "benchmarks/align.txt"
+    threads: 16
     conda: config["conda_environment"]
     shell:
         """
-        cat {input.alignments} > {output.alignment} 2> {log}
+        mafft \
+            --auto \
+            --thread {threads} \
+            --keeplength \
+            --addfragments \
+            {input.sequences} \
+            {input.reference} > {output} 2> {log}
         """
 
 rule diagnostic:
     message: "Scanning aligned sequences {input.alignment} for problematic sequences"
     input:
-        alignment = rules.aggregate_alignments.output.alignment,
-        metadata = rules.download.output.metadata,
+        alignment = "results/aligned.fasta",
+        metadata = config["metadata"],
         reference = config["files"]["reference"]
     output:
         diagnostics = "results/sequence-diagnostics.tsv",
@@ -225,9 +193,9 @@ rule refilter:
         excluding sequences flagged in the diagnostic step in file {input.exclude}
         """
     input:
-        sequences = rules.aggregate_alignments.output.alignment,
-        metadata = rules.download.output.metadata,
-        exclude = rules.diagnostic.output.to_exclude
+        sequences = "results/aligned.fasta",
+        metadata = config["metadata"],
+        exclude = "results/to-exclude.txt"
     output:
         sequences = "results/aligned-filtered.fasta"
     log:
@@ -242,7 +210,6 @@ rule refilter:
             --output {output.sequences} 2>&1 | tee {log}
         """
 
-
 rule mask:
     message:
         """
@@ -252,7 +219,7 @@ rule mask:
           - masking other sites: {params.mask_sites}
         """
     input:
-        alignment = rules.refilter.output.sequences
+        alignment = "results/aligned-filtered.fasta"
     output:
         alignment = "results/masked.fasta"
     log:
@@ -271,6 +238,43 @@ rule mask:
             --mask-sites {params.mask_sites} \
             --mask-terminal-gaps \
             --output {output.alignment} 2>&1 | tee {log}
+        """
+
+rule filter:
+    message:
+        """
+        Filtering to
+          - excluding strains in {input.exclude}
+        """
+    input:
+        sequences = "results/masked.fasta",
+        metadata = config["metadata"],
+        include = config["files"]["include"],
+        exclude = config["files"]["exclude"]
+    output:
+        sequences = "results/filtered.fasta"
+    log:
+        "logs/filtered.txt"
+    params:
+        min_length = config["filter"]["min_length"],
+        exclude_where = config["filter"]["exclude_where"],
+        min_date = config["filter"]["min_date"],
+        ambiguous = lambda wildcards: f"--exclude-ambiguous-dates-by {config['filter']['exclude_ambiguous_dates_by']}" if "exclude_ambiguous_dates_by" in config["filter"] else "",
+        date = date.today().strftime("%Y-%m-%d")
+    conda: config["conda_environment"]
+    shell:
+        """
+        augur filter \
+            --sequences {input.sequences} \
+            --metadata {input.metadata} \
+            --include {input.include} \
+            --max-date {params.date} \
+            --min-date {params.min_date} \
+            {params.ambiguous} \
+            --exclude {input.exclude} \
+            --exclude-where {params.exclude_where}\
+            --min-length {params.min_length} \
+            --output {output.sequences} 2>&1 | tee {log}
         """
 
 def _get_subsampling_settings(wildcards):
@@ -330,6 +334,8 @@ def _get_specific_subsampling_setting(setting, optional=False):
             # build's region, country, division, etc. as needed for subsampling.
             build = config["builds"][wildcards.build_name]
             value = value.format(**build)
+            if value !="" and setting == 'exclude_ambiguous_dates_by':
+                value = f"--exclude-ambiguous-dates-by {value}"
         elif value is not None:
             # If is 'seq_per_group' or 'max_sequences' build subsampling setting,
             # need to return the 'argument' for augur
@@ -358,25 +364,35 @@ rule subsample:
          - group by: {params.group_by}
          - sequences per group: {params.sequences_per_group}
          - subsample max sequences: {params.subsample_max_sequences}
+         - min-date: {params.min_date}
+         - max-date: {params.max_date}
+         - {params.exclude_ambiguous_dates_argument}
          - exclude: {params.exclude_argument}
          - include: {params.include_argument}
          - query: {params.query_argument}
          - priority: {params.priority_argument}
         """
     input:
-        sequences = rules.mask.output.alignment,
-        metadata = rules.download.output.metadata,
+        sequences = "results/filtered.fasta",
+        metadata = config["metadata"],
         include = config["files"]["include"],
-        priorities = get_priorities
+        priorities = get_priorities,
+        exclude = config["files"]["exclude"]
     output:
         sequences = "results/{build_name}/sample-{subsample}.fasta"
+    log:
+        "logs/subsample_{build_name}_{subsample}.txt"
     params:
         group_by = _get_specific_subsampling_setting("group_by"),
         sequences_per_group = _get_specific_subsampling_setting("seq_per_group", optional=True),
         subsample_max_sequences = _get_specific_subsampling_setting("max_sequences", optional=True),
+        sampling_scheme = _get_specific_subsampling_setting("sampling_scheme", optional=True),
         exclude_argument = _get_specific_subsampling_setting("exclude", optional=True),
         include_argument = _get_specific_subsampling_setting("include", optional=True),
         query_argument = _get_specific_subsampling_setting("query", optional=True),
+        exclude_ambiguous_dates_argument = _get_specific_subsampling_setting("exclude_ambiguous_dates_by", optional=True),
+        min_date = _get_specific_subsampling_setting("min_date", optional=True),
+        max_date = _get_specific_subsampling_setting("max_date", optional=True),
         priority_argument = get_priority_argument
     conda: config["conda_environment"]
     shell:
@@ -385,13 +401,18 @@ rule subsample:
             --sequences {input.sequences} \
             --metadata {input.metadata} \
             --include {input.include} \
+            --exclude {input.exclude} \
+            {params.min_date} \
+            {params.max_date} \
             {params.exclude_argument} \
             {params.include_argument} \
             {params.query_argument} \
+            {params.exclude_ambiguous_dates_argument} \
             {params.priority_argument} \
             --group-by {params.group_by} \
             {params.sequences_per_group} \
             {params.subsample_max_sequences} \
+            {params.sampling_scheme} \
             --output {output.sequences} 2>&1 | tee {log}
         """
 
@@ -402,8 +423,8 @@ rule proximity_score:
         genetic similiarity to sequences in focal set for build '{wildcards.build_name}'.
         """
     input:
-        alignment = rules.mask.output.alignment,
-        metadata = rules.download.output.metadata,
+        alignment = "results/filtered.fasta",
+        metadata = config["metadata"],
         reference = config["files"]["reference"],
         focal_alignment = "results/{build_name}/sample-{focus}.fasta"
     output:
@@ -456,7 +477,7 @@ rule adjust_metadata_regions:
         Adjusting metadata for build '{wildcards.build_name}'
         """
     input:
-        metadata = rules.download.output.metadata
+        metadata = config["metadata"]
     output:
         metadata = "results/{build_name}/metadata_adjusted.tsv"
     params:
@@ -484,7 +505,7 @@ rule tree:
         "logs/tree_{build_name}.txt"
     benchmark:
         "benchmarks/tree_{build_name}.txt"
-    threads: 16
+    threads: 8
     resources:
         # Multiple sequence alignments can use up to 40 times their disk size in
         # memory, especially for larger alignments.
@@ -533,6 +554,7 @@ rule refine:
         date_inference = config["refine"]["date_inference"],
         divergence_unit = config["refine"]["divergence_unit"],
         clock_filter_iqd = config["refine"]["clock_filter_iqd"],
+        keep_polytomies = "--keep-polytomies" if config["refine"].get("keep_polytomies", False) else "",
         timetree = "" if config["refine"].get("no_timetree", False) else "--timetree"
     conda: config["conda_environment"]
     shell:
@@ -545,6 +567,7 @@ rule refine:
             --output-node-data {output.node_data} \
             --root {params.root} \
             {params.timetree} \
+            {params.keep_polytomies} \
             --clock-rate {params.clock_rate} \
             --clock-std-dev {params.clock_std_dev} \
             --coalescent {params.coalescent} \
@@ -648,13 +671,29 @@ rule traits:
             --sampling-bias-correction {params.sampling_bias_correction} 2>&1 | tee {log}
         """
 
+def _get_clade_files(wildcards):
+    if "subclades" in config["builds"][wildcards.build_name]:
+        return [config["files"]["clades"], config["builds"][wildcards.build_name]["subclades"]]
+    else:
+        return config["files"]["clades"]
+
+rule clade_files:
+    input:
+        clade_files = _get_clade_files
+    output:
+        "results/{build_name}/clades.tsv"
+    shell:
+        '''
+        cat {input.clade_files} > {output}
+        '''
+
 rule clades:
     message: "Adding internal clade labels"
     input:
         tree = rules.refine.output.tree,
         aa_muts = rules.translate.output.node_data,
         nuc_muts = rules.ancestral.output.node_data,
-        clades = config["files"]["clades"]
+        clades = rules.clade_files.output
     output:
         clade_data = "results/{build_name}/clades.json"
     log:
@@ -683,43 +722,6 @@ rule pangolin:
             --tree {input.tree} \
             --output {output.clade_data}
         """
-
-
-rule legacy_clades:
-    message: "Adding internal clade labels"
-    input:
-        tree = rules.refine.output.tree,
-        aa_muts = rules.translate.output.node_data,
-        nuc_muts = rules.ancestral.output.node_data,
-        clades = config["files"]["legacy_clades"]
-    output:
-        clade_data = "results/{build_name}/temp_legacy_clades.json"
-    log:
-        "logs/legacy_clades_{build_name}.txt"
-    conda: config["conda_environment"]
-    shell:
-        """
-        augur clades --tree {input.tree} \
-            --mutations {input.nuc_muts} {input.aa_muts} \
-            --clades {input.clades} \
-            --output-node-data {output.clade_data} 2>&1 | tee {log}
-        """
-
-rule rename_legacy_clades:
-    input:
-        node_data = rules.legacy_clades.output.clade_data
-    output:
-        clade_data = "results/{build_name}/legacy_clades.json"
-    run:
-        import json
-        with open(input.node_data, 'r', encoding='utf-8') as fh:
-            d = json.load(fh)
-            new_data = {}
-            for k,v in d['nodes'].items():
-                if "clade_membership" in v:
-                    new_data[k] = {"legacy_clade_membership": v["clade_membership"]}
-        with open(output.clade_data, "w") as fh:
-            json.dump({"nodes":new_data}, fh)
 
 rule subclades:
     message: "Adding internal clade labels"
@@ -809,7 +811,9 @@ rule tip_frequencies:
         "logs/tip_frequencies_{build_name}.txt"
     params:
         min_date = config["frequencies"]["min_date"],
+        max_date = _get_max_date_for_frequencies,
         pivot_interval = config["frequencies"]["pivot_interval"],
+        pivot_interval_units = config["frequencies"]["pivot_interval_units"],
         narrow_bandwidth = config["frequencies"]["narrow_bandwidth"],
         proportion_wide = config["frequencies"]["proportion_wide"]
     conda: config["conda_environment"]
@@ -820,7 +824,9 @@ rule tip_frequencies:
             --metadata {input.metadata} \
             --tree {input.tree} \
             --min-date {params.min_date} \
+            --max-date {params.max_date} \
             --pivot-interval {params.pivot_interval} \
+            --pivot-interval-units {params.pivot_interval_units} \
             --narrow-bandwidth {params.narrow_bandwidth} \
             --proportion-wide {params.proportion_wide} \
             --output {output.tip_frequencies_json} 2>&1 | tee {log}
@@ -885,7 +891,6 @@ def _get_node_data_by_wildcards(wildcards):
         rules.refine.output.node_data,
         rules.ancestral.output.node_data,
         rules.translate.output.node_data,
-        rules.rename_legacy_clades.output.clade_data,
         rules.rename_subclades.output.clade_data,
         rules.clades.output.clade_data,
         rules.recency.output.node_data,
@@ -907,7 +912,8 @@ rule export:
         lat_longs = config["files"]["lat_longs"],
         description = lambda w: config["builds"][w.build_name]["description"] if "description" in config["builds"][w.build_name] else config["files"]["description"]
     output:
-        auspice_json = "results/{build_name}/ncov_with_accessions.json"
+        auspice_json = "results/{build_name}/ncov_with_accessions.json",
+        root_sequence_json = "results/{build_name}/ncov_with_accessions_root-sequence.json"
     log:
         "logs/export_{build_name}.txt"
     params:
@@ -920,6 +926,7 @@ rule export:
             --metadata {input.metadata} \
             --node-data {input.node_data} \
             --auspice-config {input.auspice_config} \
+            --include-root-sequence \
             --colors {input.colors} \
             --lat-longs {input.lat_longs} \
             --title {params.title:q} \
@@ -957,10 +964,12 @@ rule finalize:
     message: "Remove extraneous colorings for main build and move frequencies"
     input:
         auspice_json = rules.incorporate_travel_history.output.auspice_json,
-        frequencies = rules.tip_frequencies.output.tip_frequencies_json
+        frequencies = rules.tip_frequencies.output.tip_frequencies_json,
+        root_sequence_json = rules.export.output.root_sequence_json
     output:
         auspice_json = "auspice/ncov_{build_name}.json",
-        tip_frequency_json = "auspice/ncov_{build_name}_tip-frequencies.json"
+        tip_frequency_json = "auspice/ncov_{build_name}_tip-frequencies.json",
+        root_sequence_json = "auspice/ncov_{build_name}_root-sequence.json"
     log:
         "logs/fix_colorings_{build_name}.txt"
     conda: config["conda_environment"]
@@ -969,5 +978,6 @@ rule finalize:
         python3 scripts/fix-colorings.py \
             --input {input.auspice_json} \
             --output {output.auspice_json} 2>&1 | tee {log} &&
-        cp {input.frequencies} {output.tip_frequency_json}
+        cp {input.frequencies} {output.tip_frequency_json} &&
+        cp {input.root_sequence_json} {output.root_sequence_json}
         """

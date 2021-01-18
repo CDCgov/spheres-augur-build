@@ -48,4 +48,11 @@ Thumbs.db
 *~
 
 narratives/*pdf
-slurm*.out
+
+# metadata / new seqs scripts
+scripts/developer_scripts/inputs_new_sequences/
+scripts/developer_scripts/output_files_parse_metadata/
+scripts/developer_scripts/outputs_new_sequences/
+
+# SLURM log files
+slurm-*.out
