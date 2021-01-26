@@ -1,4 +1,6 @@
 import copy
+from datetime import date
+import os
 from os import environ
 from socket import getfqdn
 from getpass import getuser
@@ -61,16 +63,27 @@ if "builds" not in config:
         }
     }
 
-BUILD_NAMES = list(config["builds"].keys())
+# Allow users to specify a list of active builds from the command line.
+if config.get("active_builds"):
+    BUILD_NAMES = config["active_builds"].split(",")
+else:
+    BUILD_NAMES = list(config["builds"].keys())
+
+# Construct the correct absolute path to the conda environment based on the
+# top-level Snakefile's directory and a path defined in the Snakemake config
+# that is relative to that top-level directory.
+SNAKEMAKE_DIR = os.path.dirname(workflow.snakefile)
+CONDA_ENV_PATH = os.path.join(SNAKEMAKE_DIR, config["conda_environment"])
+config["conda_environment"] = CONDA_ENV_PATH
 
 # Define patterns we expect for wildcards.
 wildcard_constraints:
     # Allow build names to contain alpha characters, underscores, and hyphens
     # but not special strings used for Nextstrain builds.
-    build_name = r'(?:[_a-zA-Z-](?!(tip-frequencies|gisaid|zh)))+',
+    build_name = r'(?:[_a-zA-Z-](?!(tip-frequencies)))+',
     date = r"[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]"
 
-localrules: download
+localrules: download_metadata, download_sequences, download, upload, clean
 
 # Create a standard ncov build for auspice, by default.
 rule all:
