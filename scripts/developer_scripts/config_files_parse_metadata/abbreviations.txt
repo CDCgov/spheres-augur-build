@@ -59,7 +59,7 @@ Castilla la Mancha	ES
 Azuay	EC
 Ecuador	EC
 Spain	ES
-Alajuela	CO
+Alajuela	CR
 Imbabura	EC
 Heredia	CR
 Amur Region	(Amur)
@@ -76,3 +76,26 @@ Cordoba	AR
 Cordoba AR	AR
 Los Rios	EC
 Comunitat Valenciana	ES
+Ivanovo	(Ivanovo)
+Karelia	(Karelia)
+French Guiana	GF
+Bretagne	BRE
+India	IN
+Punjab	PK
+France	FR
+Belgium	BE
+Turnhout	BE
+Hauts de France	FR
+Santo Domingo de los Tsachilas	EC
+Meta	CO
+Tierra del Fuego	AR
+Goiás	BR
+Mechelen	BE
+Limburg	NL
+Israel	IL
+Botswana	BW
+São Paulo	BR
+Region Metropolitana de Santiago	CL
+Valparaiso	CL
+Brussels	BE
+Occitanie	FR
