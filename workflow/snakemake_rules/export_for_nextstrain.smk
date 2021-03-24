@@ -51,6 +51,8 @@ rule export_all_regions:
         metadata = [_get_metadata_by_build_name(build_name).format(build_name=build_name)
                     for build_name in BUILD_NAMES],
         colors = expand("results/{build_name}/colors.tsv", build_name=BUILD_NAMES),
+    benchmark:
+        "benchmarks/export_all_regions.txt"
     conda: config["conda_environment"]
     shell:
         """
@@ -60,8 +62,40 @@ rule export_all_regions:
             --latlong {input.lat_longs}
         """
 
+
 rule all_mutation_frequencies:
     input: expand("results/{build_name}/nucleotide_mutation_frequencies.json", build_name=BUILD_NAMES)
+
+rule mutation_summary:
+    message: "Summarizing {input.alignment}"
+    input:
+        alignment = rules.align.output.alignment,
+        insertions = rules.align.output.insertions,
+        translations = rules.align.output.translations,
+        reference = config["files"]["alignment_reference"],
+        genemap = config["files"]["annotation"]
+    output:
+        mutation_summary = "results/mutation_summary{origin}.tsv"
+    log:
+        "logs/mutation_summary{origin}.txt"
+    benchmark:
+        "benchmarks/mutation_summary{origin}.txt"
+    params:
+        outdir = "results/translations",
+        basename = "seqs{origin}"
+    conda: config["conda_environment"]
+    shell:
+        """
+        python3 scripts/mutation_summary.py \
+            --alignment {input.alignment} \
+            --insertions {input.insertions} \
+            --directory {params.outdir} \
+            --basename {params.basename} \
+            --reference {input.reference} \
+            --genemap {input.genemap} \
+            --output {output.mutation_summary} 2>&1 | tee {log}
+        """
+
 
 #
 # Rules for custom auspice exports for the Nextstrain team.
@@ -75,6 +109,8 @@ rule dated_json:
     output:
         dated_auspice_json = "auspice/ncov_{build_name}_{date}.json",
         dated_tip_frequencies_json = "auspice/ncov_{build_name}_{date}_tip-frequencies.json"
+    benchmark:
+        "benchmarks/dated_json_{build_name}_{date}.txt"
     conda: config["conda_environment"]
     shell:
         """
@@ -108,6 +144,8 @@ rule deploy_to_staging:
     params:
         slack_message = f"Deployed <https://nextstrain.org/staging/ncov|nextstrain.org/staging/ncov> {deploy_origin}",
         s3_staging_url = config["s3_staging_url"]
+    benchmark:
+        "benchmarks/deploy_to_staging.txt"
     conda: config["conda_environment"]
     shell:
         """
@@ -123,20 +161,24 @@ rule deploy_to_staging:
         fi
         """
 
+
 rule upload:
-    message: "Uploading intermediate files to {params.s3_bucket}"
+    message: "Uploading intermediate files for specified origins to {params.s3_bucket}"
     input:
-        "results/masked.fasta",
-        "results/aligned.fasta",
-        "results/filtered.fasta",
-        "results/sequence-diagnostics.tsv",
-        "results/flagged-sequences.tsv",
-        "results/to-exclude.txt"
+        expand("results/aligned_{origin}.fasta", origin=config["S3_DST_ORIGINS"]),              # from `rule align`
+        expand("results/sequence-diagnostics_{origin}.tsv", origin=config["S3_DST_ORIGINS"]),   # from `rule diagnostic`
+        expand("results/flagged-sequences_{origin}.tsv", origin=config["S3_DST_ORIGINS"]),      # from `rule diagnostic`
+        expand("results/to-exclude_{origin}.txt", origin=config["S3_DST_ORIGINS"]),             # from `rule diagnostic`
+        expand("results/masked_{origin}.fasta", origin=config["S3_DST_ORIGINS"]),               # from `rule mask`
+        expand("results/filtered_{origin}.fasta", origin=config["S3_DST_ORIGINS"]),             # from `rule filter`
+        expand("results/mutation_summary_{origin}.tsv", origin=config["S3_DST_ORIGINS"]),       # from `rule mutation_summary`
     params:
-        s3_bucket = config["S3_BUCKET"],
-        compression = config["preprocess"]["compression"]
+        s3_bucket = config["S3_DST_BUCKET"],
+        compression = config["S3_DST_COMPRESSION"]
     log:
-        "logs/upload.txt"
+        "logs/upload_gisaid.txt"
+    benchmark:
+        "benchmarks/upload_gisaid.txt"
     run:
         for fname in input:
             cmd = f"./scripts/upload-to-s3 {fname} s3://{params.s3_bucket}/{os.path.basename(fname)}.{params.compression} | tee -a {log}"

@@ -190,7 +190,7 @@ def rearrange_additional_info(additional_info):
 
 # Given the variants dictionary stored in variants.txt, apply on given place name
 def apply_variant(place, variants):
-    place_correct = place
+    place_correct = place.replace("_", " ")
     for hierarchy in variants:
         if place in variants[hierarchy]:
             if len(variants[hierarchy][place]) > 1:
@@ -326,6 +326,8 @@ def check_environment(strain_list, metadata, annotations_append):
         if host != "Environment":
             annotations_append.append(strain + "\t" + id + "\t" + "host" + "\t" + "Environment")
             print("Sequence " + id + " has " + host + " as host instead of Environment. Correcting annotation was produced.")
+        else:
+            print("No adjustment necessary for " + id + " (host is environment)")
     return annotations_append
 
 
@@ -584,7 +586,7 @@ def check_travel_history(info, strain_list, travel_pattern, ordering, metadata, 
 
 # Iterate over every info given and search for known patterns, or provide interactive interface for manual processing
 def check_additional_info(additional_info, path_to_config_files):
-    metadata = read_metadata(path_to_nextstrain + "ncov/data/metadata.tsv", additional_info)
+    metadata = read_metadata(path_to_nextstrain + "ncov/data/downloaded_gisaid.tsv", additional_info)
     if metadata == None:
         return []
     ordering = read_ordering_file(path_to_nextstrain + "ncov/defaults/color_ordering.tsv")
@@ -611,6 +613,14 @@ def check_additional_info(additional_info, path_to_config_files):
         print("Processing " + bold(info) + ":")
 
         while True:
+
+            if info.lower().startswith("zip"):
+                print("Auto-add comment for " + bold(info))
+                for (id, strain) in strain_list:
+                    annotations_append.append("# " + strain + "\t" + id + "\t" + info_type + ": " + info)
+                    print("Add comment for " + id)
+                break
+
 
             # Special case:
             if (info.startswith("Resident of ") or info.startswith("resident of ")) and " tested in " in info:
@@ -654,7 +664,7 @@ def check_additional_info(additional_info, path_to_config_files):
             if info in environment:
                 answer = input("Interpreted as \"Environment\". Press " + bold("ENTER") + " to approve and double check hosts, otherwise press any key: ")
                 if answer == "":
-                    annotations_append = check_environment(strain_list, metadata. annotations_append)
+                    annotations_append = check_environment(strain_list, metadata, annotations_append)
                     break
 
             annotations_append, info_found = check_travel_history(info, strain_list, travel_pattern, ordering, metadata,
@@ -669,6 +679,7 @@ def check_additional_info(additional_info, path_to_config_files):
             s = bold(info) + " did not contain known pattern or could not be interpreted. You have the following options:"
             s += "\n" + bold("l") + " - force interpretation as " + bold("patient residence")
             s += "\n" + bold("t") + " - force interpretation as " + bold("travel exposure")
+            s += "\n" + bold("e") + " - force interpretation as " + bold("environment")
             s += "\n" + bold("i") + " - add info to " + bold("ignore")
             s += "\n" + bold("a") + " - add to annotations as a " + bold("comment")
             s += "\n" + bold("nl") + " - add new " + bold("patient residence") + " pattern"
@@ -694,6 +705,9 @@ def check_additional_info(additional_info, path_to_config_files):
             elif answer == "t":
                 print("Process " + bold(info) + " now as " + bold(info + " (interpreted as travel exposure)"))
                 info = info + " (interpreted as travel exposure)"
+            elif answer == "e":
+                print("Process " + bold(info) + " as environment")
+                environment.append(info)
             elif answer == "nl":
                 pattern = input("Type pattern here (don't forget XXX as placeholder): ")
                 add_to_simple_file(path_to_config_files + "location_pattern.txt", pattern)

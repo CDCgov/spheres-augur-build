@@ -1,3 +1,5 @@
+### Wallonia
+
 ### Antwerpen
 
 # Antwerpen
@@ -99,7 +101,7 @@ Bornem
 	Bornem
 	Hingene
 	Mariekerke
-	Weert
+	Weert BE
 Duffel
 	Duffel
 Heist-op-den-Berg
@@ -190,9 +192,9 @@ Laakdal
 	Varendonk
 	Veerle
 	Vorst
-Lille
+Lille BE
 	Gierle
-	Lille
+	Lille BE
 	Poederlee
 	Wechelderzande
 Meerhout
@@ -1058,7 +1060,6 @@ Dalhem
 	Dalhem
 	Feneur
 	Mortroux
-	Neufchâteau
 	Saint-André
 	Warsage
 Esneux
@@ -1202,10 +1203,10 @@ Lierneux
 	Arbrefontaine
 	Bra
 	Lierneux
-Limbourg
+Limbourg BE
 	Bilstain
 	Goé
-	Limbourg
+	Limbourg BE
 Lontzen
 	Lontzen
 	Walhorn
@@ -1398,7 +1399,6 @@ Gingelom
 	Kortijs
 	Mielen-boven-Aalst
 	Montenaken
-	Muizen
 	Niel-bij-Sint-Truiden
 	Vorsen
 Halen
@@ -1431,7 +1431,6 @@ Leopoldsburg
 Lummen
 	Linkhout
 	Lummen
-	Meldert
 Nieuwerkerken
 	Binderveld
 	Kozen
@@ -1498,8 +1497,7 @@ Maaseik
 	Opoeteren
 Oudsbergen
 	Ellikom
-	Gruitrode
-	Meeuwen
+	Meeuwen-Gruitrode
 	Neerglabbeek
 	Opglabbeek
 	Wijshagen
@@ -1631,7 +1629,7 @@ Wellen
 
 ---------------
 
-### Luxembourg
+### Luxembourg BE
 
 # Arlon
 Arlon
@@ -1866,6 +1864,7 @@ Chiny
 	Les Bulles
 	Suxy
 	Termes
+	Valansart
 Étalle
 	Buzenol
 	Chantemelle
@@ -2348,7 +2347,6 @@ Aalst
 	Gijzegem
 	Herdersem
 	Hofstade
-	Meldert
 	Moorsel
 Denderleeuw
 	Denderleeuw
@@ -3202,6 +3200,7 @@ Wevelgem
 	Gullegem
 	Moorsele
 	Wevelgem
+	Herthoek
 Zwevegem
 	Heestert
 	Moen
@@ -3359,7 +3358,7 @@ Ixelles
 Jette
 Koekelberg
 Molenbeek-Saint-Jean
-Saint-Gilles
+Saint-Gilles BE
 Saint-Josse-ten-Noode
 Schaerbeek
 Uccle

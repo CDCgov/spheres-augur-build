@@ -11,7 +11,7 @@
       "type": "categorical"
     },
     {
-      "key": "pangolin_lineage",
+      "key": "pango_lineage",
       "title": "PANGO Lineage",
       "type": "categorical"
     },
@@ -19,6 +19,11 @@
       "key": "GISAID_clade",
       "title": "GISAID Clade",
       "type": "categorical"
+    },
+    {
+      "key": "S1_mutations",
+      "title": "S1 mutations",
+      "type": "continuous"
     },
     {
       "key": "location",
@@ -109,7 +114,7 @@
     "color_by": "clade_membership",
     "distance_measure": "num_date",
     "geo_resolution": "country",
-    "map_triplicate": true,
+    "map_triplicate": false,
     "branch_label": "clade",
     "transmission_lines": false
   },
@@ -121,7 +126,7 @@
     "division",
     "location",
     "host",
-    "author"
+    "pango_lineage"
   ],
   "panels": [
     "tree",

@@ -80,7 +80,7 @@ def read_data(path, path_to_metadata):
         if file.startswith("metadata-additions"):
             with open(path + file) as f:
                 metadata_additions = f.readlines()
-            with open(path_to_metadata + "metadata.tsv") as f:
+            with open(path_to_metadata + "downloaded_gisaid.tsv") as f:
                 metadata = f.read()
             header = metadata_additions[0].strip().split("\t")
             for line in metadata_additions[1:]:
@@ -97,6 +97,21 @@ def read_data(path, path_to_metadata):
 
 # Double check sample dates for invalid format or unrealistic / impossible date
 def check_dates(data, today):
+    clade_dates = {
+        "19A": "2019-12-01",
+        "19B": "2019-12-01",
+        "20A": "2020-01-20",
+        "20A.EU2": "2020-02-15",
+        "20B": "2020-02-14",
+        "20C": "2020-02-25",
+        "20D": "2020-03-12",
+        "20E (EU1)": "2020-05-27",
+        "20F": "2020-05-24",
+        "20G": "2020-06-11",
+        "20H/501Y.V2": "2020-08-10",
+        "20I/501Y.V1": "2020-09-20",
+        "20J/501Y.V3": "2020-10-29"
+    }
 
     invalid_sample_date = {}
     suspicious_sample_date = {}
@@ -132,15 +147,34 @@ def check_dates(data, today):
             continue
 
         #Check for early dates
-        if (year == 2020 and (month == 2 or month == 1)) or year == 2019:
-            suspicious_sample_date[strain] = date
+        #if (year == 2020 and (month == 2 or month == 1)) or year == 2019:
+            #suspicious_sample_date[strain] = date
+
+        clade = data[id]["Nextstrain_clade"]
+        if clade == "":
+            print("Clade missing for sequence " + id)
+        else:
+            if clade not in clade_dates:
+                print("Unknown clade " + clade + " for sequence " + id)
+            else:
+                clade_day = clade_dates[clade]
+                day_clade = int(clade_day[8:])
+                month_clade = int(clade_day[5:7])
+                year_clade = int(clade_day[:4])
+
+                if (year < year_clade) or (year == year_clade and month < month_clade) or (year == year_clade and month == month_clade and day < day_clade):
+                    suspicious_sample_date[strain] = date + " (" + clade + ")"
+                    data.pop(id)
+                    continue
+
+
 
     print("\n----------------------------------------------\n")
-    print("Invalid sample dates (please check whether all are automatically excluded):")
+    print("Invalid sample dates (automatically excluded from total counts):")
     for strain in invalid_sample_date:
         print(strain + ": " + invalid_sample_date[strain])
 
-    print("\nEarly sample dates (might require double checking depending on country):")
+    print("\nSample date before clade (automatically excluded from total counts):")
     for strain in suspicious_sample_date:
         print(strain + ": " + suspicious_sample_date[strain])
 
@@ -172,7 +206,7 @@ def plot_dates(data, path):
         plt.bar(dates, values)
         plt.title(country)
         plt.xticks(rotation=45, ha="right", size = 7)
-        plt.savefig(path + "dates_" + country)
+        plt.savefig(path + "dates_" + country.replace(".", ""))
         plt.close()
 
 
@@ -259,7 +293,7 @@ def collect_labs(data, table_file_name):
         if country not in lab_dictionary:
             lab_dictionary[country] = {}
         if description in lab_dictionary[country]:
-            print("Warning: lab description is found two times in excel table in same country (" + country + ", " + description + ")" )
+            print("Warning: lab description is found two times in excel table in same country (" + str(country) + ", " + str(description) + ")" )
         lab_dictionary[country][description.lower()] = handle
 
 
@@ -420,7 +454,7 @@ def prepare_tweet(counts, lab_collection):
 
     start_tweet = "Thanks to #opendata sharing by @GISAID, we've updated nextstrain.org/ncov with " + str(
         total) + " new #COVID19 #SARSCoV2 sequences!"
-    char_total = 240
+    char_total = 260
     char_available = char_total - len("Check out the new sequences from on ") - len("(Thanks to )") - len("1/1")
     char_available_first = char_available - len(start_tweet)
 

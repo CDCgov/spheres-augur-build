@@ -7,6 +7,12 @@ files:
 
 # Define builds for each state and territory.
 builds:
+  USA:
+    subsampling_scheme: USA
+    region: North America
+    country: USA
+    colors: spheres_profile/state_colors/usa_colors.tsv
+    description: spheres_profile/state_descriptions/usa_description.md
   alabama:
     colors: spheres_profile/state_colors/alabama_colors.tsv
     description: spheres_profile/state_descriptions/alabama_description.md
@@ -273,6 +279,18 @@ builds:
 # given division as possible and contextual samples from the rest of the USA and
 # the world.
 subsampling:
+  USA:
+    # Focal samples for country
+    country:
+      group_by: "division year month"
+      # seq_per_group: 30
+      max_sequences: 2000
+      exclude: "--exclude-where 'country!={country}'"
+    global-context:
+      # Evenly sample across time from the rest of the world excluding the USA.
+      group_by: "region year month"
+      max_sequences: 100
+      query: --query "(country != 'USA')"
   state-territory:
     local-focus:
       # Evenly sample across time for the current division.
