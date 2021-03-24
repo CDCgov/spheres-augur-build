@@ -1,7 +1,9 @@
 ## SARS-CoV-2 analysis with National SARS-CoV-2 Strain Surveillance (NS3) focused subsampling
 This analysis focuses on SARS-CoV-2 sequences produced by the NS3 program. Additional global context is provided by pre-selected samples representing major global lineages.
 
-[COVID-19 Genomic Epidemiology Toolkit](https://www.cdc.gov/amd/training/covid-19-gen-epi-toolkit.html) [Module 3.4 – Walking through Nextstrain trees](https://youtu.be/lFmtfnDGbo4)
+[COVID-19 Genomic Epidemiology Toolkit](https://www.cdc.gov/amd/training/covid-19-gen-epi-toolkit.html) 
+
+[Module 3.4 – Walking through Nextstrain trees](https://youtu.be/lFmtfnDGbo4)
 
 The National SARS-CoV-2 Strain Surveillance program is made possible by the efforts of our partners:
 
