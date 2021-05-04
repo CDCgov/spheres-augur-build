@@ -1,4 +1,3 @@
-
 # This file contains defaults for the "config" object used in the Snakefile.
 # To temporarily override or provide a value, you can use snakemake's --config
 # or --configfile options.
@@ -14,18 +13,6 @@ metadata: "data/metadata.tsv"
 
 reference_node_name: "USA/WA1/2020"
 
-# Certain steps may require a S3 bucket (e.g. "download pre-aligned sequences").
-# This is optional - as long as you provide the starting metadata + sequences,
-# all steps can run locally without using any S3 buckets.
-S3_BUCKET: "your_S3_bucket_here"
-
-# Preprocess steps involve the creation and storage of intermediate files
-# (alignments etc). These steps are opt-in, and are not run by default.
-# These settings define the compression/decompression settings for these files
-preprocess:
-  compression: "xz"
-  deflate: "xz -dcq"
-
 # Define files used for external configuration. Common examples consist of a
 # list of strains to include and exclude from analyses, a reference sequence to
 # align sequences to, colors for strain attributes in auspice, and auspice
@@ -35,6 +22,7 @@ files:
   exclude: "defaults/exclude.txt"
   reference: "defaults/reference_seq.gb"
   alignment_reference: "defaults/reference_seq.fasta"
+  annotation: "defaults/annotation.gff"
   outgroup: "defaults/outgroup.fasta" # is this arg still used? file doesn't exist in gh repo
   ordering: "defaults/color_ordering.tsv"
   color_schemes: "defaults/color_schemes.tsv"
@@ -42,7 +30,7 @@ files:
   lat_longs: "defaults/lat_longs.tsv"
   description: "defaults/description.md"
   clades: "defaults/clades.tsv"
-  subclades: "defaults/subclades.tsv"
+  emerging_lineages: "defaults/emerging_lineages.tsv"
 
 # Filter settings
 filter:
@@ -108,6 +96,22 @@ frequencies:
   minimal_frequency: 0.01
   stiffness: 20
   inertia: 0.2
+
+# Logistic growth settings
+logistic_growth:
+  # Calculate logistic growth over the last N pivots which corresponds to N
+  # times the amount of time represented by the `pivot_interval_units` in the
+  # frequencies configuration.
+  delta_pivots: 6
+
+  # Set the minimum number of tips a clade must have before its logistic growth
+  # is calculated.
+  min_tips: 50
+
+  # Set the minimum and maximum current frequency a clade must for its logistic
+  # growth to be calculated.
+  min_frequency: 0.000001
+  max_frequency: 0.95
 
 #
 # Region-specific settings
