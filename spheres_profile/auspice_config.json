@@ -83,8 +83,8 @@
       "type": "categorical"
     },
     {
-      "key": "pangolin_lineage",
-      "title": "Pangolin lineage",
+      "key": "pango_lineage",
+      "title": "PANGO Lineage",
       "type": "categorical"
     },
     {
@@ -109,6 +109,7 @@
   "filters": [
     "recency",
     "location",
+    "pango_lineage",
     "division",
     "country",
     "region",
