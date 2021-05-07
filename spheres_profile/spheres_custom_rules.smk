@@ -57,5 +57,3 @@ rule reformat_distance:
          --matrix {input.matrix} \
          --output {output.output}
       """
-      
-      
