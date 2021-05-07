@@ -115,6 +115,8 @@ GISAID maintains multiple tiers of access and many users of GISAID will initiall
 
 The Nextstrain team uses this pipeline to include the latest sequences and metadata from GISAID in our builds: [nextstrain/ncov-ingest](https://github.com/nextstrain/ncov-ingest).
 
+The Nextstrain team uses this pipeline to include the latest sequences and metadata from GISAID in our builds: [nextstrain/ncov-ingest](https://github.com/nextstrain/ncov-ingest).
+
 ### Subsampling
 
 We've outlined several methods for subsampling, including builds with a focus area + genetically similar contextual sequences, in the [next section](running.md).
