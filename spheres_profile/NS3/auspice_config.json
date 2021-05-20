@@ -109,6 +109,7 @@
   "filters": [
     "recency",
     "location",
+    "pango_lineage",
     "division",
     "country",
     "region",

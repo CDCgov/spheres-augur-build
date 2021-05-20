@@ -99,3 +99,33 @@ Region Metropolitana de Santiago	CL
 Valparaiso	CL
 Brussels	BE
 Occitanie	FR
+Bulgaria	BG
+Tuscany	IT
+Setúbal	PT
+Veraguas	PA
+Cocle	PA
+Paraiba	PB
+Panama	PA
+Bolivia	BO
+Manabi	EC
+Colombia	CO
+Loja	EC
+Extremadura	ES
+Panama Oeste	PA
+Valle del Cauca	CO
+Guanacaste	CR
+Los Rios CL	CL
+Wielkopolskie	(Wielkopolskie)
+Warminsko-Mazurskie	(Warminsko-Mazurskie)
+Pomorskie	(Pomorskie)
+Podlaskie	(Podlaskie)
+Maranhão	BR
+South Holland	NL
+Lubuskie	(Lubuskie)
+Espirito Santo	(Espirito Santo)
+Sergipe	(Sergipe)
+Navarra	ES
+Norte de Santander	CO
+O'Higgins	CL
+Malopolskie	(Malopolskie)
+Molise	(Molise)

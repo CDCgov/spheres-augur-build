@@ -284,7 +284,7 @@ subsampling:
     country:
       group_by: "division year month"
       # seq_per_group: 30
-      max_sequences: 2000
+      max_sequences: 2500
       exclude: "--exclude-where 'country!={country}'"
     global-context:
       # Evenly sample across time from the rest of the world excluding the USA.

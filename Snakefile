@@ -96,6 +96,7 @@ localrules: download_metadata, download_sequences, download, upload, clean
 # Create a standard ncov build for auspice, by default.
 rule all:
     input:
+        #distance = expand("microbetrace/distance-{build_name}.csv", build_name=BUILD_NAMES),
         auspice_json = expand("auspice/ncov_{build_name}.json", build_name=BUILD_NAMES),
         tip_frequency_json = expand("auspice/ncov_{build_name}_tip-frequencies.json", build_name=BUILD_NAMES)
 
@@ -132,3 +133,5 @@ if "localrules" in config:
 if "custom_rules" in config:
     for rule_file in config["custom_rules"]:
         include: rule_file
+# Include custom SPHERES rules        
+include: "spheres_profile/spheres_custom_rules.smk"

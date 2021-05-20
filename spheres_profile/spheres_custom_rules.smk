@@ -48,7 +48,7 @@ rule reformat_distance:
    input:
       matrix = "results/{build_name}/distance-{build_name}.json"
    output:
-      output = "results/{build_name}/distance-{build_name}.csv"
+      output = "microbetrace/distance-{build_name}.csv"
    # log:
    conda: config["conda_environment"]
    shell:
@@ -57,5 +57,3 @@ rule reformat_distance:
          --matrix {input.matrix} \
          --output {output.output}
       """
-      
-      

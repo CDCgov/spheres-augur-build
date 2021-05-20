@@ -9,8 +9,8 @@ configfile:
 
 #  JC added section (override data files)
 config:
-  - sequences=data/ns3_sequences_2021-03-09_08-47.fasta
-  - metadata=data/ns3_metadata_2021-03-09_18-03.tsv
+  - sequences=data/ns3_sequences.fasta
+  - metadata=data/ns3_metadata.tsv
   
 # Always print the commands that will be run to the screen for debugging.
 printshellcmds: True
