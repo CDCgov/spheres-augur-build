@@ -12,7 +12,7 @@ def mask_terminal_gaps(seq):
     left_gaps = L - len(seq_trimmed)
     seq_trimmed = seq_trimmed.rstrip('-')
     right_gaps = L - len(seq_trimmed) - left_gaps
-    return "N"*left_gaps + seq_trimmed + "N"*right_gaps
+    return "N"*left_gaps + seq_trimmed + "N"*right_gaps 
 
 
 if __name__ == '__main__':

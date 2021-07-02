@@ -47,7 +47,7 @@ if __name__ == '__main__':
             sequence_hash_by_name[record.name] = sequence_hash
             SeqIO.write(record, output_handle, 'fasta')
 
-    if duplicate_strains:
+    if len(duplicate_strains) > 0:
         print(
             "ERROR: Detected the following duplicate input strains with different sequences:",
             file=sys.stderr
