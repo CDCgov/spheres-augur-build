@@ -4,6 +4,8 @@
 
 This repo contains build files for the [SPHERES builds](https://nextstrain.org/groups/spheres) hosted by the [Nextstrain](https://nextstrain.org/) and a description the upstream subsampling steps performed prior to the analysis pipeline.
 
+The previous version of this repo can be found in the [archive branch](https://github.com/CDCgov/spheres-augur-build/tree/archive)
+ 
 ## Usage
 
 Clone this repository.
@@ -14,7 +16,7 @@ cd spheres-augur-build/
 ```
 
 Select the appropriate build in the `spheres_profile` directory and copy it's contents to a directory named `build` in your [ncov](https://github.com/nextstrain/ncov) directory.
-Modify build definitions, as needed, in `builds.yaml` and `config.yaml` files
+Modify build definitions, as needed, in `builds.yaml` and `config.yaml` files.
 By default, each build requires specificly named data files to be placed in the `ncov/data` directory
 ```
 "references" data
@@ -55,8 +57,8 @@ auspice view
 
 ## Workflow Maintenance
 
-The Nextstrain team constantly improvies the the Nextstrain workflow.  We recommend that you regularly update your ncov workflow to take advantage of new feature additions.
-This repo is no longer dependent on a specific nextstrain ncov augur distribution, so these build files can are compatible with Docker based Nextstrain workflows and can be updated independently of the ncov workflow.
+The Nextstrain team constantly improves the ncov workflow.  We recommend that you regularly update your ncov workflow to take advantage of new feature additions.
+This repo is no longer dependent on a specific ncov distribution, so these build files are compatible with Docker based workflows and can be updated independently of the ncov workflow.
 
 ## CDC SPHERES build subsampling
 
