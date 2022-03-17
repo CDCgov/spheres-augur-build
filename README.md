@@ -62,7 +62,7 @@ This repo is no longer dependent on a specific ncov distribution, so these build
 
 ## CDC SPHERES build subsampling
 
-The build files hosted in this repo are uses to generate the publicly hosted [SPHERES builds](https://nextstrain.org/groups/spheres), however most of the subsampling operations take place upstream of the Nextstrain ncov workflow. This allows for improved run-time performance and greater portability. This section describes the subsampling used to produce the [SPHERES builds](https://nextstrain.org/groups/spheres).  All input data files described here are oversampled relative to the requirements in the build file to provide some flexibility in downstream subsampling by the Nextstrain augur pipeline
+The build files hosted in this repo are used to generate the publicly hosted [SPHERES builds](https://nextstrain.org/groups/spheres), however most of the subsampling operations take place upstream of the Nextstrain ncov workflow. This allows for improved run-time performance and greater portability. This section describes the subsampling used to produce the [SPHERES builds](https://nextstrain.org/groups/spheres).  All input data files described here are oversampled relative to the requirements in the build file to provide some flexibility in downstream subsampling by the Nextstrain augur pipeline.
 
 #### Shared filters
 
