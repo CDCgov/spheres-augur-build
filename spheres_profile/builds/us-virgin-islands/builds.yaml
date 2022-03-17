@@ -1,0 +1,41 @@
+files:
+  auspice_config: "build/auspice_config.json"
+
+inputs:
+# References
+  - name: references
+    sequences: data/references_sequences.fasta 
+    metadata: data/references_metadata.tsv
+# USA
+  - name: usa
+    sequences: data/usa_background.fasta 
+    metadata: data/usa_background.tsv
+# global
+  - name: global_background
+    sequences: data/global_background.fasta 
+    metadata: data/global_background.tsv
+# focus
+  - name: focus
+    sequences: data/us-virgin-islands.fasta
+    metadata: data/us-virgin-islands.tsv
+    
+builds:
+  us-virgin-islands:
+    colors: build/us-virgin-islands_colors.tsv
+    description: build/us-virgin-islands_description.md
+    division: Virgin Islands of the U.S.
+    subsampling_scheme: state-territory
+
+subsampling:
+  state-territory:
+    local-focus:
+      max_sequences: 1500
+      query: --query "(focus == 'yes')"
+    usa-context:
+      max_sequences: 200
+      query: --query "(usa == 'yes' & division != 'Virgin Islands of the U.S.')"
+    global-context:
+      group_by: "region"
+      max_sequences: 200
+      query: --query "(global_background == 'yes')"
+

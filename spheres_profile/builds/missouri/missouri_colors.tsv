@@ -1,0 +1,71 @@
+division	Missouri	#feea9b
+division	Alabama	#a70b44
+division	Alaska	#af1446
+division	Arizona	#ba2049
+division	Arkansas	#c32a4b
+division	California	#cd364d
+division	Colorado	#d63f4f
+division	Connecticut	#da464d
+division	Delaware	#e1504b
+division	Florida	#e55749
+division	Georgia	#eb6046
+division	Hawaii	#f06744
+division	Idaho	#f47044
+division	Illinois	#f67c4a
+division	Indiana	#f8864f
+division	Iowa	#f99355
+division	Kansas	#fb9d59
+division	Kentucky	#fcaa5f
+division	Louisiana	#fdb365
+division	Maine	#fdbb6c
+division	Maryland	#fdc574
+division	Massachusetts	#fecc7b
+division	Michigan	#fed683
+division	Minnesota	#fede89
+division	Mississippi	#fee491
+division	Montana	#feefa3
+division	Nebraska	#fff5ae
+division	Nevada	#fffab6
+division	New Hampshire	#ffffbe
+division	New Jersey	#fbfdb8
+division	New Mexico	#f7fcb2
+division	New York	#f2faaa
+division	North Carolina	#eef8a4
+division	North Dakota	#e9f69d
+division	Ohio	#e4f498
+division	Oklahoma	#daf09a
+division	Oregon	#cfec9d
+division	Pennsylvania	#c6e89f
+division	Rhode Island	#bae3a1
+division	South Carolina	#b1dfa3
+division	South Dakota	#a7dba4
+division	Tennessee	#99d6a4
+division	Texas	#8fd2a4
+division	Utah	#81cda5
+division	Vermont	#76c8a5
+division	Virginia	#69c3a5
+division	Washington	#60bba8
+division	Washington DC	#58b2ac
+division	West Virginia	#4ea7b0
+division	Wisconsin	#459eb4
+division	Wyoming	#3b92b9
+division	American Samoa	#3389bd
+division	Guam	#3880b9
+division	Northern Mariana Islands	#4175b4
+division	Palau	#486cb0
+division	Puerto Rico	#5061aa
+division	Virgin Islands of the U.S.	#5758a6
+
+recency	Older	#e2514a
+recency	One month ago	#fca55d
+recency	One week ago	#fee999
+recency	3-7 days ago	#edf8a3
+recency	1-2 days ago	#a2d9a4
+recency	New	#47a0b3
+
+region	Africa	#e2514a
+region	Asia	#fca55d
+region	Europe	#fee999
+region	North America	#edf8a3
+region	Oceania	#a2d9a4
+region	South America	#47a0b3

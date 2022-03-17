@@ -1,0 +1,41 @@
+files:
+  auspice_config: "build/auspice_config.json"
+
+inputs:
+# References
+  - name: references
+    sequences: data/references_sequences.fasta 
+    metadata: data/references_metadata.tsv
+# USA
+  - name: usa
+    sequences: data/usa_background.fasta 
+    metadata: data/usa_background.tsv
+# global
+  - name: global_background
+    sequences: data/global_background.fasta 
+    metadata: data/global_background.tsv
+# focus
+  - name: focus
+    sequences: data/massachusetts.fasta
+    metadata: data/massachusetts.tsv
+    
+builds:
+  massachusetts:
+    colors: build/massachusetts_colors.tsv
+    description: build/massachusetts_description.md
+    division: Massachusetts
+    subsampling_scheme: state-territory
+
+subsampling:
+  state-territory:
+    local-focus:
+      max_sequences: 1500
+      query: --query "(focus == 'yes')"
+    usa-context:
+      max_sequences: 200
+      query: --query "(usa == 'yes' & division != 'Massachusetts')"
+    global-context:
+      group_by: "region"
+      max_sequences: 200
+      query: --query "(global_background == 'yes')"
+

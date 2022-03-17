@@ -1,14 +1,11 @@
-# Files created by the pipeline, which we want to keep out of git
-# (or at least out of _this_ git repo).
-benchmarks/
-logs/
-results/
-build/
-auspice/
-data/*
-defaults/colors.tsv
-defaults/colors_*.tsv
-stats.json
+# Custom configurations for local use
+*.py
+*.smk
+*.sh
+Snakefile-NS3
+auspice_config.json
+ignore_masked_map.json
+
 
 # Sensitive environment variables
 environment*

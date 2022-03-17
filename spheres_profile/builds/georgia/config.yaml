@@ -1,0 +1,22 @@
+#####################################################################################
+#### NOTE: head over to `builds.yaml` to define what builds you'd like to run. ####
+#### (i.e., datasets and subsampling schemas)  ####
+#####################################################################################
+
+configfile:
+  - build/builds.yaml
+  
+# Always print the commands that will be run to the screen for debugging.
+printshellcmds: True
+
+# Explain why Snakemake is running each rule.
+reason: True
+
+# Set the maximum number of cores you want Snakemake to use for this pipeline.
+cores: 8
+
+# Always print the commands that will be run to the screen for debugging.
+printshellcmds: True
+
+# Always print log files of failed jobs to the screen.
+show-failed-logs: True

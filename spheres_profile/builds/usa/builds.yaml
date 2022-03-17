@@ -1,0 +1,33 @@
+files:
+  auspice_config: "build/auspice_config.json"
+
+inputs:
+# References
+  - name: references
+    sequences: data/references_sequences.fasta 
+    metadata: data/references_metadata.tsv
+# USA
+  - name: usa
+    sequences: data/usa.fasta 
+    metadata: data/usa.tsv
+# global
+  - name: global_background
+    sequences: data/global_background.fasta 
+    metadata: data/global_background.tsv
+
+builds:
+  usa:
+    colors: build/usa_colors.tsv
+    description: build/usa_description.md
+    subsampling_scheme: USA
+
+subsampling:
+  USA:
+    usa-data:
+      max_sequences: 2000
+      query: --query "(usa == 'yes')"
+    global-context:
+      group_by: "region"
+      max_sequences: 200
+      query: --query "(global_background == 'yes')"
+

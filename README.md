@@ -2,8 +2,7 @@
 
 ## Overview
 
-This repository analyzes viral genomes using [Nextstrain](https://nextstrain.org) to understand how SARS-CoV-2, the virus that is responsible for the COVID-19 pandemic, evolves and spreads.
-This is a copy of [the original Nextstrain ncov repository](https://github.com/nextstrain/ncov/).
+This repo contains build files for the [SPHERES builds](https://nextstrain.org/groups/spheres) hosted by the [Nextstrain](https://nextstrain.org/) and a description the upstream subsampling steps performed prior to the analysis pipeline.
 
 ## Usage
 
@@ -14,42 +13,102 @@ git clone https://github.com/CDCgov/spheres-augur-build.git
 cd spheres-augur-build/
 ```
 
-Modify build definitions, as needed, in `spheres_profile/builds.yaml`.
-For more details about modifying builds, [see the SPHERES profile README](spheres_profile/README.md).
+Select the appropriate build in the `spheres_profile` directory and copy it's contents to a directory named `build` in your [ncov](https://github.com/nextstrain/ncov) directory.
+Modify build definitions, as needed, in `builds.yaml` and `config.yaml` files
+By default, each build requires specificly named data files to be placed in the `ncov/data` directory
+```
+"references" data
+Files: data/references_sequences.fasta and data/references_metadata.tsv
+Description: Sequence and metadata for Wuhan reference sequences. Provided with Nextstrain ncov repository
+```
+
+```
+"global_background" data
+Files: data/global_background.fasta and data/global_background.tsv
+Description: Sequence and metadata for non-USA background sequences.  User must provide these files.
+```
+
+```
+"usa" data
+Files: data/usa_background.fasta and data/usa_background.tsv
+Description: Sequence and metadata for USA background sequences.  User must provide these files.
+```
+
+```
+"focus" data
+Files: data/<BUILD_NAME>.fasta and data/<BUILD NAME>.tsv
+Description: Sequence and metadata for focus division.  User must provide these files.
+```
+
 Run the workflow.
 
 ```bash
-snakemake --profile spheres_profile/
+snakemake --profile build/
 ```
 
-View the resulting builds with auspice from a local machine.
+View the resulting builds through [auspice.us](https://auspice.us/) or with [auspice](https://github.com/nextstrain/auspice) installed on your local machine.
 
 ```bash
 auspice view
 ```
 
+
 ## Workflow Maintenance
 
-The Nextstrain team constantly updates the ncov workflow by curating the input data and improving the workflow itself.
-To benefit from these upstream changes, this repository can track the original Nextstrain ncov repository as an upstream remote.
+The Nextstrain team constantly improvies the the Nextstrain workflow.  We recommend that you regularly update your ncov workflow to take advantage of new feature additions.
+This repo is no longer dependent on a specific nextstrain ncov augur distribution, so these build files can are compatible with Docker based Nextstrain workflows and can be updated independently of the ncov workflow.
 
-```bash
-git remote add upstream https://github.com/nextstrain/ncov.git
-```
+## CDC SPHERES build subsampling
 
-Download the latest from the Nextstrain ncov repository.
+The build files hosted in this repo are uses to generate the publicly hosted [SPHERES builds](https://nextstrain.org/groups/spheres), however most of the subsampling operations take place upstream of the Nextstrain ncov workflow. This allows for improved run-time performance and greater portability. This section describes the subsampling used to produce the [SPHERES builds](https://nextstrain.org/groups/spheres).  All input data files described here are oversampled relative to the requirements in the build file to provide some flexibility in downstream subsampling by the Nextstrain augur pipeline
 
-```bash
-git fetch upstream
-```
+#### Shared filters
 
-Merge these changes into the local repository, adding an explicit merge commit.
+All included data is prepared using these rules prior to any subsampling operations
+- Sequence and metadata is derived from Sars-CoV-2 sequence data provided by [the GISAID Initiative](https://www.gisaid.org/)
+- In the case of duplicated accession numbers (EPI_ISL_), only the most recently submitted version is retained
+- Additional metadata is added from the [Nextstrain curation](https://raw.githubusercontent.com/nextstrain/ncov-ingest/master/source-data/gisaid_annotations.tsv)
+- Sequence length must exceed 27000 base pairs
+- Sequences are selected randomly from all sequences matching the sampling criteria
+- If an insufficient number of sequences are available for a given subsampling target, that data partition will contain all available sequences meeting that criteria
 
-```bash
-git merge --no-ff upstream/master
-```
 
-Resolve any conflicts that occur and re-run the workflow, to benefit from the latest changes in the upstream.
+#### Global background
+
+This data provides global context to the USA sequences. The `global_background` files are shared between all builds on a given week, but is re-calculated each week.
+
+- 25 sequences collected within the last two months from each global region ("Africa" "Asia" "Europe" "North America" "Oceania" "South America" )
+- 25 sequences collected prior to last two months from each global region ("Africa" "Asia" "Europe" "North America" "Oceania" "South America" )
+
+#### USA background
+
+This data is provides USA context to the focal sequences. The `usa_background` files are shared between all builds on a given week, but is re-calculated each week
+
+- 10 sequences collected within the last two months from each of the included states, unincorporated territory of the United States, and Palau
+- 10 sequences collected prior to last two months from each of the included states, unincorporated territory of the United States, and Palau
+
+#### Focal data
+
+This data is densely sampled focal data of the build. These data files are specific to each build and are not shared with other builds.
+
+- 1000 sequences collected within the last two months from the focal division
+- 1000 sequences collected prior to last two months from the focal division
+
+#### USA (whole country)
+
+This data provides an overview of circulating and historical sequences in the United States, unincorporated territory of the United States, and Palau. These files are used for the "usa" build only
+
+- 25 sequences collected within the last two months from each of the included states, unincorporated territory of the United States, and Palau
+- 25 sequences collected prior to last two months from each of the included states, unincorporated territory of the United States, and Palau
+
+#### NS3 (National Sars-Cov-2 Strain Surveillance)
+
+This data provides an overview of circulating and historical sequences in the United States and unincorporated territory of the United States generated by the NS3 project. These files are used for the "ns3" build only
+
+- 25 sequences collected as part of the NS3 project within the last two months from each of the included states, unincorporated territory of the United States, and Palau
+- 25 sequences collected as part of the NS3 project prior to last two months from each of the included states, unincorporated territory of the United States, and Palau
+
+
 
 ## Public Domain Standard Notice
 This repository constitutes a work of the United States Government and is not
